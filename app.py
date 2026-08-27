@@ -1,11 +1,30 @@
+# ============================================================
+# APP: EJERCICIO PARA COMPRENDER VECTORES
+# ============================================================
+#
+# OBJETIVO DOCENTE:
+# Cada estudiante ingresará 10 pacientes ficticios.
+#
+# Cada paciente tendrá cinco características:
+#
+# Edad - IMC - PAS - LDL - HbA1c
+#
+# Después utilizaremos estos datos para mostrar cómo
+# un paciente puede representarse matemáticamente
+# mediante un VECTOR.
+# ============================================================
+
+
 import streamlit as st
+import pandas as pd
 import gspread
+
 from google.oauth2.service_account import Credentials
 
 
-# ---------------------------------------------------------
-# CONFIGURACIÓN GENERAL DE LA APP
-# ---------------------------------------------------------
+# ============================================================
+# 1. CONFIGURACIÓN DE LA PÁGINA
+# ============================================================
 
 st.set_page_config(
     page_title="Vectores en Biomedicina",
@@ -13,21 +32,31 @@ st.set_page_config(
     layout="wide"
 )
 
+
 st.title("🧬 Ejercicio para comprender vectores")
 
 st.write(
     """
-    Esta aplicación permitirá registrar pacientes ficticios
-    y posteriormente convertirlos en vectores para analizarlos.
+    En este ejercicio construiremos colectivamente un pequeño
+    conjunto de datos biomédicos.
+
+    Cada estudiante aportará **10 pacientes ficticios**.
+
+    Cada paciente será descrito mediante cinco características:
+
+    **Edad · IMC · PAS · LDL · HbA1c**
     """
 )
 
+st.info(
+    "Posteriormente convertiremos estos datos en vectores "
+    "y exploraremos relaciones y similitudes entre pacientes."
+)
 
-# ---------------------------------------------------------
-# CONEXIÓN CON GOOGLE SHEETS
-# ---------------------------------------------------------
 
-# Definimos los permisos que necesita nuestra cuenta de servicio.
+# ============================================================
+# 2. CONEXIÓN CON GOOGLE SHEETS
+# ============================================================
 
 scopes = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -35,131 +64,405 @@ scopes = [
 ]
 
 
-# Leemos las credenciales privadas desde Streamlit Secrets.
-
 credentials = Credentials.from_service_account_info(
     dict(st.secrets["gcp_service_account"]),
     scopes=scopes
 )
 
 
-# Creamos la conexión con Google Sheets.
-
 client = gspread.authorize(credentials)
 
 
-# Leemos el ID de la hoja que guardamos en Secrets.
-
-spreadsheet_id = st.secrets["google_sheet"]["spreadsheet_id"]
-
-
-# Abrimos el archivo de Google Sheets.
-
-spreadsheet = client.open_by_key(spreadsheet_id)
+spreadsheet_id = st.secrets[
+    "google_sheet"
+]["spreadsheet_id"]
 
 
-# Abrimos la primera pestaña de la hoja.
+spreadsheet = client.open_by_key(
+    spreadsheet_id
+)
+
 
 worksheet = spreadsheet.sheet1
 
 
-# ---------------------------------------------------------
-# FORMULARIO DE PRUEBA
-# ---------------------------------------------------------
-
-st.subheader("1. Ingrese un paciente de prueba")
-
-estudiante = st.text_input(
-    "Nombre o código del estudiante",
-    value="Estudiante 1"
-)
-
-paciente = st.text_input(
-    "Paciente",
-    value="Paciente 1"
-)
-
-col1, col2, col3, col4, col5 = st.columns(5)
-
-with col1:
-    edad = st.number_input(
-        "Edad",
-        min_value=18,
-        max_value=100,
-        value=68
-    )
-
-with col2:
-    imc = st.number_input(
-        "IMC",
-        min_value=10.0,
-        max_value=60.0,
-        value=31.0
-    )
-
-with col3:
-    pas = st.number_input(
-        "PAS",
-        min_value=70,
-        max_value=250,
-        value=148
-    )
-
-with col4:
-    ldl = st.number_input(
-        "LDL",
-        min_value=20,
-        max_value=400,
-        value=170
-    )
-
-with col5:
-    hba1c = st.number_input(
-        "HbA1c",
-        min_value=3.0,
-        max_value=20.0,
-        value=7.2
-    )
-
-
-# ---------------------------------------------------------
-# GUARDAR PACIENTE
-# ---------------------------------------------------------
-
-if st.button(
-    "💾 GUARDAR PACIENTE",
-    type="primary"
-):
-
-    nueva_fila = [
-        estudiante,
-        paciente,
-        edad,
-        imc,
-        pas,
-        ldl,
-        hba1c
-    ]
-
-    worksheet.append_row(
-        nueva_fila,
-        value_input_option="USER_ENTERED"
-    )
-
-    st.success(
-        "✅ Paciente guardado correctamente en Google Sheets"
-    )
-
-
-# ---------------------------------------------------------
-# CONTADOR
-# ---------------------------------------------------------
-
-datos = worksheet.get_all_records()
+# ============================================================
+# 3. IDENTIFICACIÓN DEL ESTUDIANTE
+# ============================================================
 
 st.divider()
 
-st.metric(
-    "Pacientes registrados",
-    len(datos)
+st.header("👨‍⚕️ 1. Identifique su grupo")
+
+
+estudiante = st.text_input(
+    "Nombre, iniciales o código del estudiante/grupo",
+    placeholder="Ejemplo: Grupo 3"
+)
+
+
+st.caption(
+    "No utilice información identificable de pacientes reales. "
+    "Este ejercicio utiliza datos ficticios."
+)
+
+
+# ============================================================
+# 4. DATOS PREDETERMINADOS
+# ============================================================
+#
+# Los estudiantes NO necesitan escribir todo desde cero.
+#
+# Los datos aparecen previamente llenos.
+#
+# Pueden modificarlos para crear diferentes perfiles.
+# ============================================================
+
+
+datos_iniciales = pd.DataFrame(
+    {
+        "Paciente": [
+            "Paciente 1",
+            "Paciente 2",
+            "Paciente 3",
+            "Paciente 4",
+            "Paciente 5",
+            "Paciente 6",
+            "Paciente 7",
+            "Paciente 8",
+            "Paciente 9",
+            "Paciente 10"
+        ],
+
+        "Edad": [
+            68, 65, 25, 28, 72,
+            70, 44, 46, 55, 58
+        ],
+
+        "IMC": [
+            31.0, 30.0, 21.0, 22.0, 33.0,
+            32.0, 27.0, 28.0, 24.0, 25.0
+        ],
+
+        "PAS": [
+            148, 145, 108, 112, 155,
+            150, 125, 128, 118, 120
+        ],
+
+        "LDL": [
+            170, 165, 85, 92, 190,
+            180, 120, 125, 105, 110
+        ],
+
+        "HbA1c": [
+            7.2, 7.0, 5.0, 5.2, 8.1,
+            7.8, 5.8, 6.0, 5.4, 5.5
+        ]
+    }
+)
+
+
+# ============================================================
+# 5. TABLA EDITABLE
+# ============================================================
+
+st.divider()
+
+st.header("📝 2. Ingrese sus 10 pacientes")
+
+
+st.write(
+    """
+    Los datos ya están llenos para facilitar el ejercicio.
+
+    **Modifique algunos valores** para crear sus propios
+    pacientes ficticios.
+    """
+)
+
+
+datos_editados = st.data_editor(
+
+    datos_iniciales,
+
+    num_rows="fixed",
+
+    hide_index=True,
+
+    use_container_width=True,
+
+    column_config={
+
+        "Paciente": st.column_config.TextColumn(
+            "Paciente"
+        ),
+
+        "Edad": st.column_config.NumberColumn(
+            "Edad",
+            min_value=18,
+            max_value=100,
+            step=1
+        ),
+
+        "IMC": st.column_config.NumberColumn(
+            "IMC",
+            min_value=10.0,
+            max_value=60.0,
+            step=0.1,
+            format="%.1f"
+        ),
+
+        "PAS": st.column_config.NumberColumn(
+            "PAS",
+            min_value=70,
+            max_value=250,
+            step=1
+        ),
+
+        "LDL": st.column_config.NumberColumn(
+            "LDL",
+            min_value=20,
+            max_value=400,
+            step=1
+        ),
+
+        "HbA1c": st.column_config.NumberColumn(
+            "HbA1c",
+            min_value=3.0,
+            max_value=20.0,
+            step=0.1,
+            format="%.1f"
+        )
+    }
+)
+
+
+# ============================================================
+# 6. EXPLICACIÓN DEL VECTOR
+# ============================================================
+
+st.info(
+    """
+    💡 Cada fila contiene cinco características numéricas.
+
+    Por ejemplo:
+
+    **[68, 31, 148, 170, 7.2]**
+
+    puede utilizarse como representación matemática
+    de un paciente.
+    """
+)
+
+
+# ============================================================
+# 7. BOTÓN PARA GUARDAR LOS 10 PACIENTES
+# ============================================================
+
+st.divider()
+
+st.header("💾 3. Agregue sus pacientes al dataset colectivo")
+
+
+if st.button(
+    "GUARDAR MIS 10 PACIENTES",
+    type="primary",
+    use_container_width=True
+):
+
+    # Comprobamos que el estudiante se identificó.
+
+    if estudiante.strip() == "":
+
+        st.error(
+            "⚠️ Escriba primero el nombre o código de su grupo."
+        )
+
+    else:
+
+        filas_nuevas = []
+
+
+        # Convertimos cada fila de la tabla
+        # en una fila para Google Sheets.
+
+        for _, fila in datos_editados.iterrows():
+
+            filas_nuevas.append(
+                [
+                    estudiante,
+                    fila["Paciente"],
+                    int(fila["Edad"]),
+                    float(fila["IMC"]),
+                    int(fila["PAS"]),
+                    int(fila["LDL"]),
+                    float(fila["HbA1c"])
+                ]
+            )
+
+
+        # Guardamos las 10 filas de una sola vez.
+
+        worksheet.append_rows(
+            filas_nuevas,
+            value_input_option="USER_ENTERED"
+        )
+
+
+        st.success(
+            "✅ ¡Sus 10 pacientes fueron agregados "
+            "al dataset colectivo!"
+        )
+
+
+# ============================================================
+# 8. LEEMOS EL DATASET COLECTIVO
+# ============================================================
+
+datos_colectivos = worksheet.get_all_records()
+
+
+if len(datos_colectivos) > 0:
+
+    df_colectivo = pd.DataFrame(
+        datos_colectivos
+    )
+
+else:
+
+    df_colectivo = pd.DataFrame()
+
+
+# ============================================================
+# 9. CONTADOR COLECTIVO
+# ============================================================
+
+st.divider()
+
+st.header("📊 Dataset colectivo")
+
+
+if len(df_colectivo) > 0:
+
+    numero_pacientes = len(
+        df_colectivo
+    )
+
+    numero_participantes = (
+        df_colectivo["Estudiante"]
+        .astype(str)
+        .nunique()
+    )
+
+else:
+
+    numero_pacientes = 0
+    numero_participantes = 0
+
+
+col1, col2 = st.columns(2)
+
+
+with col1:
+
+    st.metric(
+        "👥 Pacientes registrados",
+        numero_pacientes
+    )
+
+
+with col2:
+
+    st.metric(
+        "🎓 Estudiantes / grupos",
+        numero_participantes
+    )
+
+
+# ============================================================
+# 10. BARRA DE PROGRESO
+# ============================================================
+#
+# Nuestra meta docente será inicialmente 100 pacientes.
+# ============================================================
+
+meta = 100
+
+
+progreso = min(
+    numero_pacientes / meta,
+    1.0
+)
+
+
+st.progress(
+    progreso
+)
+
+
+st.write(
+    f"**{numero_pacientes} / {meta} pacientes recolectados**"
+)
+
+
+if numero_pacientes >= meta:
+
+    st.success(
+        "🎉 Dataset listo para analizar."
+    )
+
+else:
+
+    faltantes = meta - numero_pacientes
+
+    st.caption(
+        f"Faltan {faltantes} pacientes para alcanzar "
+        f"la meta docente de {meta}."
+    )
+
+
+# ============================================================
+# 11. MOSTRAR LOS DATOS
+# ============================================================
+
+if len(df_colectivo) > 0:
+
+    with st.expander(
+        "🔎 Ver pacientes recolectados"
+    ):
+
+        st.dataframe(
+            df_colectivo,
+            use_container_width=True,
+            hide_index=True
+        )
+
+
+# ============================================================
+# 12. PRÓXIMA ETAPA
+# ============================================================
+
+st.divider()
+
+st.header("🧬 ¿Qué haremos con estos datos?")
+
+
+st.write(
+    """
+    Una vez tengamos nuestros pacientes podremos:
+
+    **1. Generar los vectores**
+
+    **2. Normalizar los vectores**
+
+    **3. Explorar relaciones mediante regresión lineal**
+
+    **4. Visualizar similitudes entre pacientes en 3D**
+    """
+)
+
+
+st.info(
+    "Paciente → Vector → Normalización → "
+    "Relaciones → Similitud → Patrones"
 )
