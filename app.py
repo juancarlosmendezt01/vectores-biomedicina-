@@ -466,3 +466,166 @@ st.info(
     "Paciente → Vector → Normalización → "
     "Relaciones → Similitud → Patrones"
 )
+# ============================================================
+# 13. GENERAR VECTORES
+# ============================================================
+
+st.divider()
+
+st.header("🧮 Generar vectores")
+
+
+if numero_pacientes == 0:
+
+    st.warning(
+        "Todavía no hay pacientes suficientes para generar vectores."
+    )
+
+else:
+
+    st.write(
+        """
+        Cada paciente puede representarse mediante un conjunto
+        ordenado de características numéricas.
+
+        Utilizaremos:
+
+        **Edad, IMC, PAS, LDL y HbA1c**
+        """
+    )
+
+    st.info(
+        "Vector = [Edad, IMC, PAS, LDL, HbA1c]"
+    )
+
+
+    if st.button(
+        "GENERAR VECTORES",
+        use_container_width=True
+    ):
+
+        # ----------------------------------------------------
+        # Seleccionamos únicamente las variables numéricas
+        # que formarán cada vector.
+        # ----------------------------------------------------
+
+        variables_vector = [
+            "Edad",
+            "IMC",
+            "PAS",
+            "LDL",
+            "HbA1c"
+        ]
+
+
+        # ----------------------------------------------------
+        # Creamos una copia de los datos.
+        # ----------------------------------------------------
+
+        df_vectores = df_colectivo.copy()
+
+
+        # ----------------------------------------------------
+        # Convertimos las columnas a valores numéricos.
+        # ----------------------------------------------------
+
+        for variable in variables_vector:
+
+            df_vectores[variable] = pd.to_numeric(
+                df_vectores[variable],
+                errors="coerce"
+            )
+
+
+        # Eliminamos filas incompletas.
+
+        df_vectores = df_vectores.dropna(
+            subset=variables_vector
+        )
+
+
+        st.success(
+            f"✅ Se generaron {len(df_vectores)} vectores."
+        )
+
+
+        # ----------------------------------------------------
+        # Mostramos algunos ejemplos
+        # ----------------------------------------------------
+
+        st.subheader("Ejemplos")
+
+
+        numero_ejemplos = min(
+            10,
+            len(df_vectores)
+        )
+
+
+        for i in range(numero_ejemplos):
+
+            fila = df_vectores.iloc[i]
+
+            vector = [
+                fila["Edad"],
+                fila["IMC"],
+                fila["PAS"],
+                fila["LDL"],
+                fila["HbA1c"]
+            ]
+
+
+            st.code(
+                f'{fila["Estudiante"]} - '
+                f'{fila["Paciente"]} = {vector}'
+            )
+
+
+        # ----------------------------------------------------
+        # Creamos la matriz completa
+        # ----------------------------------------------------
+
+        matriz_vectores = df_vectores[
+            variables_vector
+        ].to_numpy()
+
+
+        st.subheader("Matriz de vectores")
+
+
+        st.write(
+            f"""
+            Tenemos una matriz de:
+
+            **{matriz_vectores.shape[0]} pacientes ×
+            {matriz_vectores.shape[1]} características**
+            """
+        )
+
+
+        st.dataframe(
+            df_vectores[
+                [
+                    "Estudiante",
+                    "Paciente",
+                    "Edad",
+                    "IMC",
+                    "PAS",
+                    "LDL",
+                    "HbA1c"
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True
+        )
+
+
+        st.info(
+            """
+            💡 Ahora el computador ya no necesita interpretar
+            una historia clínica completa.
+
+            Cada paciente está representado mediante números
+            que pueden ser comparados y analizados matemáticamente.
+            """
+        )
